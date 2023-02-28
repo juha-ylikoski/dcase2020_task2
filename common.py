@@ -133,7 +133,7 @@ def file_to_vector_array(file_name,
         * dataset.shape = (dataset_size, feature_vector_length)
     """
     # 01 calculate the number of dimensions
-    dims = n_mels * frames
+    #dims = n_mels * frames
 
     # 02 generate melspectrogram using librosa
     y, sr = file_load(file_name)
@@ -147,7 +147,11 @@ def file_to_vector_array(file_name,
     # 03 convert melspectrogram to log mel energy
     log_mel_spectrogram = 20.0 / power * numpy.log10(mel_spectrogram + sys.float_info.epsilon)
 
-    return log_mel_spectrogram[:,:-1]
+    t = log_mel_spectrogram.shape[-1]
+    if t%2 != 0:
+        #logger.info("cropping last spectrum")
+        log_mel_spectrogram = log_mel_spectrogram[:,:-1]
+    return log_mel_spectrogram
 
 
     # 04 calculate total vector size

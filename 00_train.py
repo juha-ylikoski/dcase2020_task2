@@ -100,19 +100,20 @@ def list_to_vector_array(file_list,
         * dataset.shape = (number of feature vectors, dimensions of feature vectors)
     """
     # calculate the number of dimensions
-    dims = n_mels * frames
+    #dims = n_mels * frames
 
     # iterate file_to_vector_array()
     for idx in tqdm(range(len(file_list)), desc=msg):
-        vector_array = com.file_to_vector_array(file_list[idx],
+        log_mel_spec = com.file_to_vector_array(file_list[idx],
                                                 n_mels=n_mels,
                                                 frames=frames,
                                                 n_fft=n_fft,
                                                 hop_length=hop_length,
                                                 power=power)
         if idx == 0:
-            dataset = numpy.zeros((len(file_list), n_mels, 312), float)
-        dataset[idx, :, :] = vector_array
+            t = log_mel_spec.shape[-1]
+            dataset = numpy.zeros((len(file_list), n_mels, t), float)
+        dataset[idx, :, :] = log_mel_spec
 
     return dataset
 
@@ -194,7 +195,7 @@ if __name__ == "__main__":
 
         # train model
         print("============== MODEL TRAINING ==============")
-        model = keras_model.get_model((param["feature"]["n_mels"], 312,1),2)
+        model = keras_model.get_model((param["feature"]["n_mels"],train_data.shape[-1],1),2)
         model.summary()
 
         model.compile(**param["fit"]["compile"])
