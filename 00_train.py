@@ -22,7 +22,7 @@ import numpy
 from tqdm import tqdm
 # original lib
 import common as com
-import keras_model
+import ae2 as keras_model
 ########################################################################
 
 
@@ -103,6 +103,7 @@ def list_to_vector_array(file_list,
     #dims = n_mels * frames
 
     # iterate file_to_vector_array()
+    file_list = file_list
     for idx in tqdm(range(len(file_list)), desc=msg):
         log_mel_spec = com.file_to_vector_array(file_list[idx],
                                                 n_mels=n_mels,
@@ -115,7 +116,7 @@ def list_to_vector_array(file_list,
             dataset = numpy.zeros((len(file_list), n_mels, t), float)
         dataset[idx, :, :] = log_mel_spec
 
-    return dataset
+    return numpy.expand_dims(dataset,-1)
 
 
 def file_list_generator(target_dir,
@@ -178,24 +179,48 @@ if __name__ == "__main__":
         history_img = "{model}/history_{machine_type}.png".format(model=param["model_directory"],
                                                                   machine_type=machine_type)
 
-        if os.path.exists(model_file_path):
-            com.logger.info("model exists")
-            continue
-
         # generate dataset
         print("============== DATASET_GENERATOR ==============")
         files = file_list_generator(target_dir)
-        train_data = list_to_vector_array(files,
+        training_data_cache = "train.npy"
+        params_cache = "params.npy"
+        load_new=True
+        if os.path.exists(params_cache):
+            old_params = numpy.load(params_cache)
+            params = numpy.array(
+              [param["feature"]["n_mels"],
+              param["feature"]["n_fft"],
+              param["feature"]["hop_length"],
+              param["feature"]["power"]]
+            )
+            if os.path.exists(training_data_cache) and (old_params == params).all():
+                com.logger.info("loading training data from cache")
+                train_data=numpy.load(training_data_cache)
+                load_new=False
+
+        if load_new:
+            train_data = list_to_vector_array(files,
                                           msg="generate train_dataset",
                                           n_mels=param["feature"]["n_mels"],
                                           frames=param["feature"]["frames"],
                                           n_fft=param["feature"]["n_fft"],
                                           hop_length=param["feature"]["hop_length"],
                                           power=param["feature"]["power"])
+            numpy.save(training_data_cache,train_data)
+            numpy.save(params_cache,numpy.array(
+              [param["feature"]["n_mels"],
+              param["feature"]["n_fft"],
+              param["feature"]["hop_length"],
+              param["feature"]["power"]]
+            ))
 
         # train model
         print("============== MODEL TRAINING ==============")
-        model = keras_model.get_model((param["feature"]["n_mels"],train_data.shape[-1],1),2)
+        if os.path.exists(model_file_path):
+            com.logger.info("model exists")
+            model = keras_model.load_model(model_file_path)
+        else:
+            model = keras_model.get_model((param["feature"]["n_mels"],*train_data.shape[-2:]),2)
         model.summary()
 
         model.compile(**param["fit"]["compile"])

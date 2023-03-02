@@ -9,69 +9,69 @@
 # import python-library
 ########################################################################
 # from import
+import numpy as np
 import keras.models
 from keras.models import Model
-from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, Reshape, Flatten, Lambda
-from keras import backend as K
+from keras.layers import Input, Dense, BatchNormalization, Activation, Flatten,Reshape
 
 ########################################################################
 # keras model
 ########################################################################
-
-# A function to compute the value of latent space
-def compute_latent(x):
-    mu, sigma = x
-    batch = K.shape(mu)[0]
-    dim = K.int_shape(mu)[1]
-    eps = K.random_normal(shape=(batch,dim))
-    return mu + K.exp(sigma/2)*eps
-
-
-def get_model(input_dim, latent_dim):
+def get_model(inputDim, x):
     """
-    initial idea using image vae from 
-    https://becominghuman.ai/using-variational-autoencoder-vae-to-generate-new-images-14328877e88d
+    define the keras model
+    the model based on the simple dense auto encoder 
+    (128*128*128*128*8*128*128*128*128)
     """
-    encoder_input = Input(shape=input_dim)
+    inputLayer = Input(shape=inputDim)
+    print(inputLayer.shape)
+    h = Flatten()(inputLayer)
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    encoder_conv = Conv2D(filters=8, kernel_size=3, strides=2, 
-                    padding='same', activation='relu')(encoder_input)
-    encoder_conv = Conv2D(filters=16, kernel_size=3, strides=2, 
-                    padding='same', activation='relu')(encoder_input)
-    encoder = Flatten()(encoder_conv)
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    mu = Dense(latent_dim)(encoder)
-    sigma = Dense(latent_dim)(encoder)
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    latent_space = Lambda(compute_latent, output_shape=(latent_dim,))([mu, sigma])
+    # h = Dense(128)(h)
+    # h = BatchNormalization()(h)
+    # h = Activation('relu')(h)
+    
+    h = Dense(8)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    # Take the convolution shape to be used in the decoder
-    conv_shape = K.int_shape(encoder_conv)
+    # h = Dense(128)(h)
+    # h = BatchNormalization()(h)
+    # h = Activation('relu')(h)
 
-    # Constructing decoder
-    decoder_input = Input(shape=(latent_dim,))
-    decoder = Dense(conv_shape[1]*conv_shape[2]*conv_shape[3], activation='relu')(decoder_input)
-    decoder = Reshape((conv_shape[1], conv_shape[2], conv_shape[3]))(decoder)
-    decoder_conv = Conv2DTranspose(filters=16, kernel_size=3, strides=2, 
-                            padding='same', activation='relu')(decoder)
-    decoder_conv = Conv2DTranspose(filters=8, kernel_size=3, strides=2, 
-                            padding='same', activation='relu')(decoder)
-    decoder_conv =  Conv2DTranspose(filters=1, kernel_size=3, 
-                            padding='same', activation='sigmoid')(decoder_conv)
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    # Actually build encoder, decoder and the entire VAE
-    encoder = Model(encoder_input, latent_space)
-    decoder = Model(decoder_input, decoder_conv)
-    vae = Model(encoder_input, decoder(encoder(encoder_input)))
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
 
-    return vae
+    h = Dense(128)(h)
+    h = BatchNormalization()(h)
+    h = Activation('relu')(h)
+
+    h = Dense(np.prod(inputDim))(h)
+    h = Reshape(inputDim)(h)
+    return Model(inputs=inputLayer, outputs=h)
 #########################################################################
 
 
 def load_model(file_path):
     return keras.models.load_model(file_path)
 
-    
+
 if __name__ == '__main__':
-    vae = get_model((64,312,1),2)
-    vae.summary()
+    m = get_model((64,64,1))
+    m.summary()

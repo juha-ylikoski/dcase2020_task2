@@ -211,8 +211,9 @@ if __name__ == "__main__":
                                                     n_fft=param["feature"]["n_fft"],
                                                     hop_length=param["feature"]["hop_length"],
                                                     power=param["feature"]["power"])
-                    errors = numpy.mean(numpy.square(data - model.predict(data)), axis=1)
-                    y_pred[file_idx] = numpy.mean(errors)
+                    data = numpy.expand_dims(data,(0,-1))
+                    errors = numpy.mean(numpy.square(data - model.predict(data,verbose=0)))
+                    y_pred[file_idx] = errors
                     anomaly_score_list.append([os.path.basename(file_path), y_pred[file_idx]])
                 except:
                     com.logger.error("file broken!!: {}".format(file_path))

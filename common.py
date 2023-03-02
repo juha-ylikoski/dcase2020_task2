@@ -151,7 +151,9 @@ def file_to_vector_array(file_name,
     if t%2 != 0:
         #logger.info("cropping last spectrum")
         log_mel_spectrogram = log_mel_spectrogram[:,:-1]
-    return log_mel_spectrogram
+    m = numpy.mean(log_mel_spectrogram)
+    std = numpy.std(log_mel_spectrogram)
+    return (log_mel_spectrogram-m)/std
 
 
     # 04 calculate total vector size
