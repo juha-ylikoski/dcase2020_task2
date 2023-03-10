@@ -26,7 +26,7 @@ from tqdm import tqdm
 from sklearn import metrics
 # original lib
 import common as com
-import keras_model
+import ae2 as keras_model
 ########################################################################
 
 
@@ -211,12 +211,13 @@ if __name__ == "__main__":
                                                     n_fft=param["feature"]["n_fft"],
                                                     hop_length=param["feature"]["hop_length"],
                                                     power=param["feature"]["power"])
-                    data = numpy.expand_dims(data,(0,-1))
+                    data = data[numpy.newaxis,:,:, numpy.newaxis]
                     errors = numpy.mean(numpy.square(data - model.predict(data,verbose=0)))
                     y_pred[file_idx] = errors
                     anomaly_score_list.append([os.path.basename(file_path), y_pred[file_idx]])
-                except:
-                    com.logger.error("file broken!!: {}".format(file_path))
+                except Exception as e:
+                    com.logger.error("file broken!!: {} {}".format(file_path, e))
+                    raise
 
             # save anomaly score
             save_csv(save_file_path=anomaly_score_csv, save_data=anomaly_score_list)
@@ -224,12 +225,18 @@ if __name__ == "__main__":
 
             if mode:
                 # append AUC and pAUC to lists
+                # print(y_true)
+                # print(y_pred)
                 auc = metrics.roc_auc_score(y_true, y_pred)
                 p_auc = metrics.roc_auc_score(y_true, y_pred, max_fpr=param["max_fpr"])
                 csv_lines.append([id_str.split("_", 1)[1], auc, p_auc])
                 performance.append([auc, p_auc])
                 com.logger.info("AUC : {}".format(auc))
                 com.logger.info("pAUC : {}".format(p_auc))
+                threshold = 0.02751403933548408
+                y_pred = numpy.array(y_pred)
+                accuracy = 1 - sum(numpy.abs((y_pred > threshold) - numpy.array(y_true))) / len(y_true)
+                print("Accuracy:", accuracy)
 
             print("\n============ END OF TEST FOR A MACHINE ID ============")
 

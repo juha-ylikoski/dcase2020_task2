@@ -1,0 +1,8 @@
+__pycache__
+*.pyc
+model
+results
+dev_data
+eval_data
+*.log
+*.npy

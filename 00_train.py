@@ -128,7 +128,7 @@ def file_list_generator(target_dir,
     dir_name : str (default="train")
         directory name containing training data
     ext : str (default="wav")
-        file extension of audio files
+        file extension of audio Jyke Saviafiles
 
     return :
         train_files : list [ str ]
