@@ -137,6 +137,7 @@ def file_to_vector_array(file_name,
 
     # 02 generate melspectrogram using librosa
     y, sr = file_load(file_name)
+    y = y[:160000]
     mel_spectrogram = librosa.feature.melspectrogram(y=y,
                                                      sr=sr,
                                                      n_fft=n_fft,
