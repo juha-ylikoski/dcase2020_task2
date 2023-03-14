@@ -1,9 +1,12 @@
 # Unsupervised Detection of Anomalous Sounds for Machine Condition Monitoring
 
 ## Introduction (Samuel)
-- anomaly detection
-- dataset
-- baseline model
+
+We decided to make a implementation that tackles the task of the dcase2020 Challenge task 2. Unsupervised Detection of Anomalous Sounds for Machine Condition Monitoring [B]. Simply put we want to detect anomalies from audio data escpecially from machine sounds. This would be very beneficial for autonomous monitoring of machines. The most common way to approach this is by using autoencoders which are neural networks used to learn the compressed representation of raw data and then reconstruct it into the original data aka the output. Since it can be hard to find samples to cover all anomalious sounds, an autoencoder is a very powerful tool to detect anomalies since it can be trained with only working machine sounds then it tries to reconstruct the data into an output. Then we can assign an anomaly score to the output based on the difference between the input and output. Since if the audio contained anomalies the autoencoder won't reconstruct it as well as a nonanomalious audio thus achieving a high anomaly score. Then we just need to set a good threshold to catch all audio samples with high anomaly scores. 
+
+The dataset we will be using is the dataset provided in the challenge. It contains the development data set with 6 different machines each that have 3-4 different machine ID:s. Each machine ID dataset contains about 1000 samples of normal sounds for training and 100-200 samples of normal and anomalous sounds for testing. Then there is the Evaluation dataset contains 400 samples for different machine ID:s that don't contain the condition label (normal or anomaly) and the machine ID:s are different then the development datasets. This data we cannot use because we won't know the condition of the machine in the data. Additionally there are 1000 normal samples for all machine ID:s in the evaluation dataset in an additional training dataset that we can use for training our model.
+
+Finally we will introduce the baseline model that is given in the dcase challenge before we go to our approach. the baseline model is a simple autoencoder where we assume it cannot reconstruct any sounds not used in training. The baseline first calculates the log-mel-spectrogram of the input with respect to the number of mel-filters and time-frames we want. We ended up going with 64 mels and 5 time frames since those seemed like good baseline values. Then the model concatenates several log-mel-filterbank outputs to get the acustic features at each time t. The architechture of the baseline model is very simple, it simply has an input shape of 640 then 4 dense layers with 128 units followed by a "bottleneck" layer which is a dense layer with 8 units and then 4 more dense layers with 128 units, finally we have an output layer that returns the same shape as the input with a dense layer of 640 units. For the baseline we use d100 epochs with a batch size of 512 and an Adam optimizer with 0.001 learning rate. The results of our baseline model can be seen in the section Experiments and results.
 
 ## Methodology (Teemu)
 
@@ -72,6 +75,10 @@ As we can see the models have learned to reconstruct also the anomalous samples 
 One reason that might cause the model to learn also to reconstruct the anomalious samples is that the convolutional models are more effective to learn the local structures in spectrogram. This leads to model that is capable of producing overall shapes that are unseen based on the local features. The independent features of anomalies like vertical lines or bright dots are still visible in some training data samples where the convolutional kernels are able to learn to construct those.
 
 ## References
+The dcase challenge page:
+
+[B] Dcase URL:https://dcase.community/challenge2020/task-unsupervised-detection-of-anomalous-sounds#baseline-system
+
 Authors asked to cite to these in dcase page:
 
 
