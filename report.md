@@ -9,7 +9,7 @@
 
 Inspired by the usage of convolutional autoencoders in image generation and noise removal [A], we implemented a convolutional autoencoder to reconstruct audio samples similarly as the baseline implementation. Usually image generation solutions are using variational autoencoders, but in outlier detection setup, controllable latent space do not provide any extra capabilities. So we deciced to stick with simple convolutional autoencoders that has convolutional layers with stride in encoder to reduce the size of the image and transpose convolution with stride in decoder to upsample the size back to original. We adopted the use of mean squared error as loss function in training and also in calculation of anomaly score. A brief experiments with binary crossentropy combined with KL-divergence inspired by [A] were made as loss function and measure of outlier with poor improvements to results.  
 
-We considered mel-spectrograms as input images to our network. The dimensionality of the spectrograms was 64x64 and to get the 10 s input audio with sampling rate of 16 kHz clips transformed to spectrograms we therefore used $n_{mel}=64, n_{fft}=4096 $ and $hop\_lenght=2500$. The reduction of information in temporal domain is significant due to rather large $n_{fft}$ and hop_lenght but it usually can present the outliers of the test data well as presented in conclusions section. We also normalize the spectrograms to zero mean and variance of 1 to regularize the outputs of layers and get better drop the initial loss. Naturally, the channel number in spectrograms in 1 so the input size to network is (64,64,1).
+We considered mel-spectrograms as input images to our network. The dimensionality of the spectrograms was 64x64 and to get the 10 s input audio with sampling rate of 16 kHz clips transformed to spectrograms we therefore used $n_{mel}=64, n_{fft}=4096$ and $hop\_lenght=2500$. The reduction of information in temporal domain is significant due to rather large $n_{fft}$ and hop_lenght but it usually can present the outliers of the test data well as presented in conclusions section. We also normalize the spectrograms to zero mean and variance of 1 to regularize the outputs of layers and get better drop the initial loss. Naturally, the channel number in spectrograms in 1 so the input size to network is (64,64,1).
 
 The specific architecture of our network is as follows:
 
@@ -38,6 +38,25 @@ As observable from table we adopted a symmetric architecture to our autoencoder 
 
 ## Experiments and results (Juha)
 
+The networks were trained for each of the machine variants separately like the baseline model. It took around 3 seconds per epoch and we trained the model for 300 epochs where the validation loss seemed to have stabilized. 
+
+![pump validation loss](./history_pump.png)
+Figure 1: Validation loss of the pump model.
+
+After training all of the models for 300 epochs, we tested them against the reference implementation and got results shown in table 1.
+
+| Machine     | Our average AUC (area under curve)(%) | Reference AUC     (%) | Our average pAUC (partial area under curve)(%) | Reference pAUC    (%) |
+|:------------|:--------------------------------------|:----------------------|:-----------------------------------------------|:----------------------|
+| ToyCar      | 0.6044265804949768                    | 0.7904188209589154    | 0.5115495643052743                             | 0.6770448312032225    |
+| ToyConveyor | 0.5444705502807206                    | 0.7219788686305358    | 0.49855999035735615                            | 0.6075683975761338    |
+| fan         | 0.4858796775804515                    | 0.6787375350710187    | 0.5057930255883372                             | 0.528149808442621     |
+| pump        | 0.5349788445788446                    | 0.729651795872384     | 0.5391974991510595                             | 0.6126229778783958    |
+| slider      | 0.7009784644194756                    | 0.8484831460674158    | 0.6669500295683028                             | 0.6689089296274394    |
+| ToyCar      | 0.4037878151260505                    | 0.6791734943977591    | 0.5137079831932773                             | 0.5073271413828689    |
+
+As you can see from the results, the reference implementation detects anomalies better than our implementation. To our understanding, the network does not really seem to be compressing/decompressing the mel-spectogram anomalous samples worse than the normal samples. This means that our AUC and pAUC -values are quite close to the random estimator. In the testing dataset the number of samples for anomalies and normal samples is approximately 50% and our result of approximately 50 % seems to be just randomly picking samples and declaring them as anomalies and non-anomalies.
+The only exception to this is the slider-dataset which has about 70% AUC, but the dataset itself is biased having about 69% of the samples as anomalies which is basically exactly what a random estimator would get if it always guessed everything to be anomaly.
+
 ## Conclusion (Juha, Teemu, Samuel)
 
 Here are some original and reconstructed spectrograms from our models. 
@@ -46,7 +65,7 @@ Here are some original and reconstructed spectrograms from our models.
 
 ![comparison of spectrograms for Toy Car](toycar_anomaly_org.png)
 
-Figure 1: Original mel-spectrogram on left and reconstruction of model in right of anomalious sample. First row is pump with id 0 and second row Toycar with id 3.
+Figure 2: Original mel-spectrogram on left and reconstruction of model in right of anomalious sample. First row is pump with id 0 and second row Toycar with id 3.
 
 As we can see the models have learned to reconstruct also the anomalous samples even thought those are unseen in training. This yields poor results because the normal and anomalous samples can't be differentiated based on mean squared error. 
 
