@@ -12,7 +12,7 @@ Finally we will introduce the baseline model that is given in the dcase challeng
 
 Inspired by the usage of convolutional autoencoders in image generation and noise removal [5], we implemented a convolutional autoencoder to reconstruct audio samples similarly as the baseline implementation. Usually image generation solutions are using variational autoencoders, but in outlier detection setup, controllable latent space do not provide any extra capabilities. So we deciced to stick with simple convolutional autoencoders that has convolutional layers with stride in encoder to reduce the size of the image and transpose convolution with stride in decoder to upsample the size back to original. We adopted the use of mean squared error as loss function in training and also in calculation of anomaly score. A brief experiments with binary crossentropy combined with KL-divergence inspired by [5] were made as loss function and measure of outlier with poor improvements to results.  
 
-We considered log-mel-spectrograms as input images to our network. The dimensionality of the spectrograms was 64x64 and to get the 10 s input audio with sampling rate of 16 kHz clips transformed to spectrograms we therefore used $n_{mel}=64, n_{fft}=4096$ and $hop\_lenght=2500$. The reduction of information in temporal domain is significant due to rather large $n_{fft}$ and hop_lenght but it usually can present the outliers of the test data well as presented in conclusions section. We also normalize the spectrograms to zero mean and variance of 1 to regularize the outputs of layers and get better drop the initial loss. Naturally, the channel number in spectrograms in 1 so the input size to network is (64,64,1).
+We considered log-mel-spectrograms as input images to our network. The dimensionality of the spectrograms was 64x64 and to get the 10 s input audio with sampling rate of 16 kHz clips transformed to spectrograms we therefore used $n_{mel}=64, n_{fft}=4096$ and $\text{hop_lenght}=2500$. The reduction of information in temporal domain is significant due to rather large $n_{fft}$ and hop_lenght but it usually can present the outliers of the test data well as presented in conclusions section. We also normalize the spectrograms to zero mean and variance of 1 to regularize the outputs of layers and get better drop the initial loss. Naturally, the channel number in spectrograms in 1 so the input size to network is (64,64,1).
 
 The specific architecture of our network is as follows:
 
@@ -62,7 +62,7 @@ The only exception to this is the slider-dataset which has about 70% AUC, but th
 
 ## Conclusions
 
-Here are some original and reconstructed spectrograms from our models. 
+We have our code publicly available in repository[6].Here are some original and reconstructed spectrograms from our models. 
 
 ![comparison of spectrograms for pump](pump_00_anomaly.png)
 
@@ -88,3 +88,11 @@ The dcase challenge page:
 [4] Yuma Koizumi, Yohei Kawaguchi, Keisuke Imoto, Toshiki Nakamura, Yuki Nikaido, Ryo Tanabe, Harsh Purohit, Kaori Suefusa, Takashi Endo, Masahiro Yasuda, and Noboru Harada. Description and discussion on DCASE2020 challenge task2: unsupervised anomalous sound detection for machine condition monitoring. In Proceedings of the Detection and Classification of Acoustic Scenes and Events 2020 Workshop (DCASE2020), 81–85. November 2020. URL: http://dcase.community/documents/workshop2020/proceedings/DCASE2020Workshop_Koizumi_3.pdf.
 
 [5] Francois Chollet, Building Autoencoders in Keras, 2016, https://blog.keras.io/building-autoencoders-in-keras.html
+
+[6] Our github repository, https://github.com/juha-ylikoski/dcase2020_task2
+
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none"});
+</script>
